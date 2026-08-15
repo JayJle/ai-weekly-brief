@@ -76,7 +76,7 @@ Agent Loop 的关键特征：
 - 可选：飞书群自定义机器人 Webhook
 
 ```bash
-git clone <你的仓库地址>
+git clone https://github.com/JayJle/ai-weekly-brief.git
 cd ai-weekly-brief
 npm ci
 npm run setup
@@ -95,9 +95,42 @@ npm.cmd run setup
 npm.cmd start
 ```
 
-配置向导会在当前项目根目录生成 `.env`。项目不依赖 C 盘、用户名或固定绝对路径，移动文件夹或从 GitHub 重新克隆后仍可运行。
+### `cd ai-weekly-brief` 到底是什么意思
 
-完整的新手操作说明见 [README_启动指南.md](./README_启动指南.md)。
+`cd` 的意思是“进入某个文件夹”。上面的 `cd ai-weekly-brief` 只适用于：你刚刚执行了 `git clone`，并且 Git 自动创建的项目文件夹名称是 `ai-weekly-brief`。
+
+如果项目在其他位置，就应该进入它的**实际目录**，不要求在 C 盘。例如：
+
+```powershell
+# 项目在 D:\AI\ai-weekly-brief
+cd "D:\AI\ai-weekly-brief"
+
+# 项目在桌面的 My Projects 文件夹
+cd "$env:USERPROFILE\Desktop\My Projects\ai-weekly-brief"
+```
+
+路径包含空格时必须加英文双引号。最简单的 Windows 操作方法是：在文件资源管理器中打开项目文件夹，点击地址栏输入 `powershell` 并按回车；这样打开的终端已经位于项目目录，不需要再执行 `cd`。
+
+可以用下面的命令确认位置正确：
+
+```powershell
+Get-ChildItem package.json
+```
+
+如果能看到 `package.json`，说明当前目录正确。配置向导会在这个项目根目录生成 `.env`。项目不依赖 C 盘、用户名或固定绝对路径，移动文件夹或从 GitHub 重新克隆后仍可运行。
+
+### 配置向导会询问什么
+
+运行 `npm.cmd run setup` 后，按中文提示依次填写：
+
+1. 模型提供商与 API Key；
+2. Main Agent 和 Research Agent 的模型 ID；
+3. 搜索服务（Tavily、Brave 或 Mock）与 API Key；
+4. 飞书群自定义机器人 Webhook URL；
+5. `DRY_RUN`、`APPROVAL` 或 `AUTO` 模式；
+6. 时区、每周预算、每天 Heartbeat 时间和周报发送时间。
+
+密钥只保存在本机项目目录的 `.env` 中，不会提交到 GitHub。第一次体验可以全部选择 Mock，并使用 `DRY_RUN`，不会产生真实模型和搜索费用。
 
 ## 推荐的首次验证
 
@@ -118,6 +151,20 @@ npm.cmd run quality:test -- 3
 ```
 
 这条命令会产生真实 API 用量，但不会把测试事件写入正式候选库。飞书消息底部会显示本次模型 Token 和费用，不包含 Tavily 搜索费用。
+
+### 飞书机器人配置
+
+飞书通知不需要安装 CLI，也不需要创建企业应用：
+
+1. 新建一个接收周报的飞书群，群里可以只有你自己；
+2. 打开群设置 → 群机器人 → 添加机器人 → 自定义机器人；
+3. 机器人名称可填写 `AI Weekly Brief`；
+4. 建议在安全设置中添加关键词 `AI Weekly Brief`；
+5. 复制形如 `https://open.feishu.cn/open-apis/bot/v2/hook/...` 的 Webhook；
+6. 运行 `npm.cmd run setup`，粘贴 Webhook；
+7. 运行 `npm.cmd run notify:test` 测试推送。
+
+Webhook 等同于推送密钥，不要放进截图、聊天消息或 GitHub 文件。
 
 ## 运行 Agent Loop
 
@@ -226,6 +273,75 @@ logs/             脱敏运行日志（不提交 Git）
 - 飞书发送超时会进入 `UNKNOWN` 状态并阻止盲目重发，避免重复周报。
 
 提交或公开仓库前，仍应运行 `git status`，确认 `.env` 和 `data/` 没有进入暂存区。
+
+## 日常查看、备份与更新
+
+查看运行状态：
+
+```powershell
+npm.cmd run status
+npm.cmd run coverage:status
+npm.cmd run history -- 20
+npm.cmd run brief:preview
+```
+
+创建并校验 SQLite 一致性备份：
+
+```powershell
+npm.cmd run backup
+```
+
+备份保存在 `data/backups/`。恢复前先停止程序并保留当前 `data/weekly.db`，再把选定备份复制为 `data/weekly.db`；不确定时不要直接覆盖。
+
+从 GitHub 更新项目前，先停止服务并备份：
+
+```powershell
+npm.cmd run backup
+git pull
+npm.cmd ci
+npm.cmd run db:migrate
+npm.cmd test
+npm.cmd start
+```
+
+## 常见问题
+
+### PowerShell 提示禁止运行脚本
+
+使用 `npm.cmd`，不需要修改 Windows 执行策略：
+
+```powershell
+npm.cmd run status
+```
+
+### 飞书没有收到周报
+
+依次执行：
+
+```powershell
+npm.cmd run config:check
+npm.cmd run notify:test
+npm.cmd run status
+npm.cmd run brief:preview
+```
+
+常见原因包括：仍处于 `DRY_RUN`、合格候选不足 10 条、来源或置信度门槛未通过、电脑在执行时间关机、Webhook 无效，或者飞书关键词安全设置与消息标题不匹配。
+
+### 飞书发送超时后可以直接重试吗
+
+不要盲目重试。系统会将发送状态记为 `UNKNOWN` 并阻止重复发送。先检查飞书群和 `npm.cmd run status`，然后根据实际情况处理：
+
+```powershell
+# 已确认飞书群收到了周报
+npm.cmd run delivery:resolve -- 2026-W33 1 SENT
+
+# 已确认飞书群没有收到，解除保护后允许重试
+npm.cmd run delivery:resolve -- 2026-W33 1 RETRY
+```
+
+### 为什么电脑关机后没有执行
+
+本地程序只有在电脑开机且 `npm.cmd start` 正在运行时才能工作。需要电脑关机后继续执行，应使用前文的 Docker 方式部署到长期在线的云服务器。
 
 ## 开发与验证
 
