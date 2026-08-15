@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.env
+.env.backup-*
+data/*
+!data/.gitkeep
+logs/
+/coverage/
+*.log
+*.db
+*.db-shm
+*.db-wal
+.DS_Store
+Thumbs.db

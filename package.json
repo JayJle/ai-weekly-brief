@@ -1,0 +1,42 @@
+{
+  "name": "ai-weekly-brief",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "npm run build --silent && node --disable-warning=ExperimentalWarning --test --test-concurrency=1 \"dist/tests/*.test.js\"",
+    "setup": "npm run build --silent && node --disable-warning=ExperimentalWarning dist/src/cli.js setup",
+    "config:check": "npm run build --silent && node --disable-warning=ExperimentalWarning dist/src/cli.js config:check",
+    "db:migrate": "npm run build --silent && node --disable-warning=ExperimentalWarning dist/src/cli.js db:migrate",
+    "status": "npm run build --silent && node --disable-warning=ExperimentalWarning dist/src/cli.js status",
+    "history": "npm run build --silent && node --disable-warning=ExperimentalWarning dist/src/cli.js history",
+    "backup": "npm run build --silent && node --disable-warning=ExperimentalWarning dist/src/cli.js backup",
+    "delivery:resolve": "npm run build --silent && node --disable-warning=ExperimentalWarning dist/src/cli.js delivery:resolve",
+    "coverage:status": "npm run build --silent && node --disable-warning=ExperimentalWarning dist/src/cli.js coverage:status",
+    "coverage:scan": "npm run build --silent && node --disable-warning=ExperimentalWarning dist/src/cli.js coverage:scan",
+    "notify:test": "npm run build --silent && node --disable-warning=ExperimentalWarning dist/src/cli.js notify:test",
+    "search:smoke": "npm run build --silent && node --disable-warning=ExperimentalWarning dist/src/cli.js search:smoke",
+    "pi:smoke": "npm run build --silent && node --disable-warning=ExperimentalWarning dist/src/cli.js pi:smoke",
+    "models:list": "npm run build --silent && node --disable-warning=ExperimentalWarning dist/src/cli.js models:list",
+    "demo:event": "npm run build --silent && node --disable-warning=ExperimentalWarning dist/src/cli.js demo:event",
+    "quality:test": "npm run build --silent && node --disable-warning=ExperimentalWarning dist/src/cli.js quality:test",
+    "heartbeat": "npm run build --silent && node --disable-warning=ExperimentalWarning dist/src/cli.js heartbeat",
+    "brief:preview": "npm run build --silent && node --disable-warning=ExperimentalWarning dist/src/cli.js brief:preview",
+    "brief:finalize": "npm run build --silent && node --disable-warning=ExperimentalWarning dist/src/cli.js brief:finalize",
+    "brief:send": "npm run build --silent && node --disable-warning=ExperimentalWarning dist/src/cli.js brief:send",
+    "start": "npm run build --silent && node --disable-warning=ExperimentalWarning dist/src/cli.js start"
+  },
+  "dependencies": {
+    "@earendil-works/pi-coding-agent": "0.83.0",
+    "typebox": "1.3.7"
+  },
+  "devDependencies": {
+    "@types/node": "24.12.4",
+    "typescript": "5.9.3"
+  }
+}
